@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
 <style>
 /* ══════════════════════════════════════════════
    PAYSTRUCTURE PRO — COMPLETE DESIGN SYSTEM
@@ -1502,6 +1503,41 @@ body.has-mobile-bar { padding-bottom: 76px; }
 .sv-slot-tax { font-size: 11px; color: var(--ink3); }
 .sv-lbl { font-size: 11px; font-weight: 700; color: var(--ink2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .06em; }
 
+
+/* Back to top floating control */
+#backToTop {
+  position: fixed;
+  right: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#111827,#0f172a);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 850;
+  box-shadow: 0 10px 24px rgba(2,6,23,.3);
+  opacity: 0;
+  transform: translateY(12px) scale(.92);
+  pointer-events: none;
+  transition: opacity .22s var(--ease), transform .22s var(--ease), box-shadow .2s var(--ease);
+}
+#backToTop.show { opacity: .92; transform: translateY(0) scale(1); pointer-events: auto; }
+#backToTop:hover { box-shadow: 0 14px 28px rgba(2,6,23,.38); }
+#backToTop::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.25);
+  opacity: 0;
+  transform: scale(.7);
+}
+#backToTop.hold::after { animation: stepRingPop .6s var(--ease) infinite; opacity: .85; }
+body.has-mobile-bar #backToTop { bottom: calc(84px + env(safe-area-inset-bottom)); }
+
 /* Share button & toast */
 #shareCopied { display: none; position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 8px 18px; border-radius: 20px; font-size: 12px; font-weight: 700; z-index: 9999; pointer-events: none; }
 #shareCopied.show { display: block; animation: fadeIn .2s ease; }
@@ -1535,13 +1571,50 @@ body.has-mobile-bar { padding-bottom: 76px; }
 #previewCard { display:none; }
 #previewCard.show { display:block; }
 
-/* QR code container */
-#qrContainer { display:flex; justify-content:center; padding:16px 0 8px; }
-#qrContainer canvas, #qrContainer img { border-radius:8px; }
-/* Share modal tabs */
-.shr-tab.active { color:#7c3aed !important; border-bottom-color:#7c3aed !important; background:#fff !important; }
-.shr-panel { display:none; }
-.shr-panel.active { display:block; }
+/* Inline share box */
+#shareInlineBox {
+  display:none;
+  margin-top:12px;
+  background:#fff;
+  border:1.5px solid var(--bd);
+  border-radius:14px;
+  box-shadow:var(--sh-md);
+  overflow:hidden;
+  animation:fadeUp .22s var(--ease);
+}
+#shareInlineBox.open { display:block; }
+.share-inline-head {
+  background:linear-gradient(135deg,#7c3aed,#6d28d9);
+  color:#fff;
+  padding:14px 16px;
+}
+.share-inline-body { padding:14px 16px; }
+#shareLinkPreview {
+  background:var(--card2);
+  border:1.5px solid var(--bd);
+  border-radius:10px;
+  padding:10px 12px;
+  font-size:10.5px;
+  font-family:'JetBrains Mono',monospace;
+  color:var(--ink2);
+  word-break:break-all;
+  margin:10px 0;
+  max-height:66px;
+  overflow:auto;
+}
+#waPreview {
+  background:var(--card2);
+  border:1.5px solid var(--bd);
+  border-radius:10px;
+  padding:10px 12px;
+  font-size:11.5px;
+  line-height:1.7;
+  color:var(--ink);
+  max-height:140px;
+  overflow-y:auto;
+  white-space:pre-wrap;
+  margin-top:10px;
+}
 
 /* Step 7 legal references header */
 .v12-step-hdr { display: flex; align-items: center; gap: 12px; margin: 28px 0 14px; }
@@ -3034,7 +3107,7 @@ body.has-mobile-bar { padding-bottom: 76px; }
     <span style="font-size:16px;flex-shrink:0">ℹ️</span>
     <span>Some values have been manually adjusted — results reflect your custom structure, not the mathematically optimal allocation. <button onclick="clearOverrides()" style="background:none;border:none;color:#1e40af;font-weight:700;cursor:pointer;font-size:12px;text-decoration:underline;padding:0;font-family:'Plus Jakarta Sans',sans-serif">Restore optimal →</button></span>
   </div>
-  <div id="dirtyBanner" style="display:none;margin-bottom:12px;padding:11px 16px;background:#fffbeb;border:2px solid #f59e0b;border-radius:12px;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:18px;flex-shrink:0">⚠️</span><div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:800;color:#92400e;line-height:1.3">Structure changed — results are outdated</div><div style="font-size:11px;color:#b45309;margin-top:2px">Click Calculate to see updated regime comparison, cards &amp; salary slip.</div></div><button onclick="calculate()" style="background:#b45309;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">↻ Recalculate</button></div><div class="calc-btn-wrap">
+  <div id="dirtyBanner" style="display:none;margin:8px 0 16px;padding:11px 16px;background:#fffbeb;border:2px solid #f59e0b;border-radius:12px;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:18px;flex-shrink:0">⚠️</span><div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:800;color:#92400e;line-height:1.3">Structure changed — results are outdated</div><div style="font-size:11px;color:#b45309;margin-top:2px">Click Calculate to see updated regime comparison, cards &amp; salary slip.</div></div><button onclick="calculate()" style="background:#b45309;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">↻ Recalculate</button></div><div class="calc-btn-wrap">
     <button class="btn btn-gold calc-main-btn" onclick="calculate()">⚡ Calculate — Compare Regimes, See Cards &amp; Salary Slip <span style="opacity:.6;font-size:11px;font-weight:500;margin-left:6px">Ctrl+↵</span></button>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="btn btn-outline btn-sm" onclick="resetToDefault()">🔄 Reset to Default</button>
@@ -3090,7 +3163,7 @@ body.has-mobile-bar { padding-bottom: 76px; }
     </div>
     <button class="btn btn-green" onclick="downloadExcel()">⬇ Excel (.xlsx)</button>
     <button class="btn btn-primary" onclick="printSlip()" style="background:var(--ink)">🖨 Print / PDF</button>
-    <button class="btn btn-green" onclick="showShareModal()">📲 Share</button>
+    <button class="btn btn-green" onclick="toggleShareInline()">📲 Share</button>
     <button id="verifyBtn" onclick="downloadVerificationExcel()" style="cursor:pointer;background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;border:none;border-radius:10px;padding:11px 18px;font-size:13px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 2px 12px rgba(37,99,235,.26);transition:all .2s;display:inline-flex;align-items:center;gap:7px;flex-direction:column;min-width:180px;position:relative;overflow:hidden" onmouseover="if(!this.disabled){this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 24px rgba(37,99,235,.3)'}" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 12px rgba(37,99,235,.26)'">
       <span id="verifyBtnLabel" style="display:flex;align-items:center;gap:7px">🔬 Verify (Excel)</span>
       <div id="verifyProgress" style="display:none;width:100%;background:rgba(255,255,255,.2);border-radius:4px;height:4px;overflow:hidden;margin-top:2px">
@@ -3138,51 +3211,24 @@ body.has-mobile-bar { padding-bottom: 76px; }
     </div>
   </div>
 
-  <!-- Share modal -->
-  <div id="shareModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;overflow-y:auto;-webkit-overflow-scrolling:touch;" onclick="if(event.target===this)closeShareModal()">
-    <div style="min-height:100%;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;">
-    <div style="background:#fff;border-radius:20px;max-width:400px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.25);overflow:hidden;max-height:none;position:relative;">
-      <!-- Header -->
-      <div style="background:linear-gradient(135deg,#7c3aed,#6d28d9);padding:20px 22px 16px;color:#fff">
-        <div style="font-size:16px;font-weight:800;margin-bottom:4px">📲 Share This Calculation</div>
-        <div style="font-size:11px;opacity:.8">Anyone opening the link will see your exact numbers — read-only view</div>
-      </div>
-      <!-- Tab switcher -->
-      <div style="display:flex;border-bottom:2px solid var(--bd);background:var(--card2)">
-        <button class="shr-tab active" onclick="switchShareTab(0,this)" style="flex:1;padding:10px 8px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--ink2);font-family:inherit;transition:all .15s">🔗 Share Link</button>
-        <button class="shr-tab" onclick="switchShareTab(1,this)" style="flex:1;padding:10px 8px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--ink2);font-family:inherit;transition:all .15s">📱 QR Code</button>
-        <button class="shr-tab" onclick="switchShareTab(2,this)" style="flex:1;padding:10px 8px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--ink2);font-family:inherit;transition:all .15s">📲 WhatsApp</button>
-      </div>
-      <!-- Panel 0: Link -->
-      <div class="shr-panel active" id="shrP0" style="padding:20px">
-        <div style="font-size:12px;color:var(--ink2);margin-bottom:12px;line-height:1.7">
-          This link encodes <strong>all your inputs</strong> in the URL itself (no server needed). Anyone who opens it will see your salary structure in read-only mode — they can review it, then click "Use the tool" to enter their own numbers.
-        </div>
-        <div id="shareUrlWarning" style="display:none;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;padding:10px 12px;font-size:11px;color:#92400e;margin-bottom:12px;line-height:1.6">
-          ⚠️ <strong>Local file detected.</strong> This link only works on your device. To share with others, upload <code>PayStructurePro_v13.html</code> to GitHub Pages, Netlify, or any web host — then the link will work for anyone.
-        </div>
-        <div style="background:var(--card2);border:1.5px solid var(--bd);border-radius:10px;padding:10px 14px;font-size:10.5px;font-family:'JetBrains Mono',monospace;color:var(--ink2);word-break:break-all;margin-bottom:14px;max-height:60px;overflow:hidden" id="shareLinkPreview">—</div>
-        <button onclick="copyShareLink()" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:10px">📋 Copy Link</button>
-        <div style="font-size:11px;color:var(--ink3);text-align:center">Works on any device · No login needed · Link never expires</div>
-      </div>
-      <!-- Panel 1: QR -->
-      <div class="shr-panel" id="shrP1" style="padding:20px;text-align:center;display:none">
-        <div style="font-size:12px;color:var(--ink2);margin-bottom:14px">Scan with any phone camera to open the calculation instantly.</div>
-        <div id="qrContainer" style="display:flex;justify-content:center;padding:8px 0 12px"></div>
-        <div style="font-size:11px;color:var(--ink3)">Screenshot the QR code to share via WhatsApp, email or print it on a document.</div>
-      </div>
-      <!-- Panel 2: WhatsApp text -->
-      <div class="shr-panel" id="shrP2" style="padding:20px;display:none">
-        <div style="font-size:12px;color:var(--ink2);margin-bottom:12px;line-height:1.7">A formatted text summary — paste into WhatsApp, email, or Telegram. No link required.</div>
-        <div id="waPreview" style="background:var(--card2);border:1.5px solid var(--bd);border-radius:10px;padding:12px 14px;font-size:11.5px;line-height:1.8;color:var(--ink);max-height:200px;overflow-y:auto;white-space:pre-wrap;font-family:inherit;margin-bottom:14px"></div>
-        <button onclick="doWhatsApp()" class="btn" style="width:100%;justify-content:center;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;margin-bottom:8px">📲 Open in WhatsApp</button>
-        <button onclick="copyWaText()" class="btn" style="width:100%;justify-content:center;background:var(--card2);color:var(--ink);border:1.5px solid var(--bd)">📋 Copy Text</button>
-      </div>
-      <!-- Footer -->
-      <div style="padding:12px 20px;border-top:1.5px solid var(--bd);text-align:center">
-        <button onclick="closeShareModal()" style="background:none;border:none;font-size:12px;color:var(--ink3);cursor:pointer;font-family:inherit;font-weight:600">✕ Close</button>
-      </div>
+  <!-- Share tools (inline, non-popup) -->
+  <div id="shareInlineBox">
+    <div class="share-inline-head">
+      <div style="font-size:15px;font-weight:800">📲 Share This Calculation</div>
+      <div style="font-size:11px;opacity:.84">Copy compressed URL or share directly on WhatsApp</div>
     </div>
+    <div class="share-inline-body">
+      <div id="shareUrlWarning" style="display:none;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;padding:10px 12px;font-size:11px;color:#92400e;margin-bottom:10px;line-height:1.6">
+        ⚠️ <strong>Local file detected.</strong> This link only works on your device. To share with others, host this HTML file online.
+      </div>
+      <div style="font-size:12px;color:var(--ink2);line-height:1.7">Share URL (compressed):</div>
+      <div id="shareLinkPreview">—</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="copyLinkBtn" onclick="copyShareLink()" class="btn btn-primary" style="flex:1;justify-content:center;min-width:170px">📋 Copy URL</button>
+        <button onclick="doWhatsApp()" class="btn" style="flex:1;justify-content:center;min-width:170px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none">📲 Open WhatsApp</button>
+      </div>
+      <div id="waPreview"></div>
+      <button id="copyWaBtn" onclick="copyWaText()" class="btn" style="width:100%;justify-content:center;margin-top:10px;background:var(--card2);color:var(--ink);border:1.5px solid var(--bd)">📋 Copy WhatsApp Text</button>
     </div>
   </div>
 
@@ -3224,6 +3270,8 @@ body.has-mobile-bar { padding-bottom: 76px; }
   <div class="tip-sheet-title" id="tipTitle"></div>
   <div class="tip-sheet-body" id="tipBody"></div>
 </div>
+
+<button id="backToTop" aria-label="Back to top" title="Back to top">↑</button>
 
 <script>
 // ══════════════════════════════════════════════════════════
@@ -3298,6 +3346,54 @@ function closeTip(){
   document.getElementById('tipOverlay').classList.remove('show');
   document.getElementById('tipSheet').classList.remove('show');
 }
+
+let _backTopHoldTimer=null;
+let _backTopHoldActive=false;
+let _backTopRaf=0;
+let _backTopDidHold=false;
+function _holdScrollStep(){
+  if(!_backTopHoldActive) return;
+  const y=window.scrollY||window.pageYOffset||0;
+  if(y<=0){ stopBackTopHold(); return; }
+  window.scrollTo(0, Math.max(0, y-42));
+  _backTopRaf=requestAnimationFrame(_holdScrollStep);
+}
+function stopBackTopHold(){
+  if(_backTopHoldActive) _backTopDidHold=true;
+  _backTopHoldActive=false;
+  if(_backTopHoldTimer){ clearTimeout(_backTopHoldTimer); _backTopHoldTimer=null; }
+  if(_backTopRaf){ cancelAnimationFrame(_backTopRaf); _backTopRaf=0; }
+  const y=window.scrollY||window.pageYOffset||0;
+  window.scrollTo(0,y);
+  document.getElementById('backToTop')?.classList.remove('hold');
+}
+function initBackToTop(){
+  const btn=document.getElementById('backToTop');
+  if(!btn) return;
+  const update=()=>btn.classList.toggle('show',(window.scrollY||0)>420);
+  window.addEventListener('scroll', update, {passive:true});
+  update();
+  btn.addEventListener('click',e=>{
+    if(_backTopHoldActive || _backTopDidHold){
+      e.preventDefault();
+      _backTopDidHold=false;
+      return;
+    }
+    e.preventDefault();
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+  btn.addEventListener('pointerdown',()=>{
+    stopBackTopHold();
+    _backTopHoldTimer=setTimeout(()=>{
+      _backTopHoldActive=true;
+      btn.classList.add('hold');
+      _holdScrollStep();
+    },120);
+  });
+  ['pointerup','pointercancel','pointerleave','blur'].forEach(ev=>btn.addEventListener(ev,stopBackTopHold));
+  ['pointerup','pointercancel','mouseup','touchend','visibilitychange'].forEach(ev=>window.addEventListener(ev,stopBackTopHold,{passive:true}));
+}
+
 
 // ══════════════════════════════════════════════════════════
 // RENDER COMPONENT ROWS — CARD STYLE, ALWAYS SHOWS INPUT
@@ -5197,19 +5293,19 @@ function downloadExcel(){
   const tax=[
     ['TAX COMPUTATION — FY 2026-27','OLD REGIME','NEW REGIME (Finance Act 2025)'],
     ['Gross Salary',d.grossSalary,d.grossSalary],
-    ['Less: HRA Exempt [ITA 2025 Sch III Sl.11]',d.hraExempt,'NIL'],
-    ['Less: LTA Exempt [ITA 2025 Sch III Sl.8]',d.ltaExempt,'NIL'],
-    ['Less: Meal Coupons [Rule 3(7)(iii)] — Old Regime only',d.foodExempt,'NIL (Sec 202(2)(c))'],
-    ['Less: Mobile [Rule 2BB]',d.mobileExempt,'NIL'],
+    ['Less: HRA Exempt [ITA 2025 Sch III Sl.11]',d.hraExempt,0],
+    ['Less: LTA Exempt [ITA 2025 Sch III Sl.8]',d.ltaExempt,0],
+    ['Less: Meal Coupons [Rule 3(7)(iii)] — Old Regime only',d.foodExempt,0],
+    ['Less: Mobile [Rule 2BB]',d.mobileExempt,0],
     ['Less: Employer PF [ITA 2025 Sch XI Para 6]',d.pfErExempt,d.pfErExempt],
     ['Less: Gratuity',d.gratExempt,d.gratExempt],
     ['Gross Taxable Salary',d.grossTaxOld,d.grossTaxNew],
     ['Less: Standard Deduction',50000,75000],
-    ['Less: Professional Tax [NOT in New Regime]',d.profTax||2400,'NIL'],
+    ['Less: Professional Tax [NOT in New Regime]',d.profTax||2400,0],
     ['Net Income',d.netOld,d.netNew],
-    ['Section 123/80C',d.total80c,'NIL'],
-    ['Section 33(8)/24(b) Home Loan',d.sec24b,'NIL'],
-    ['ITA 2025 Sec 124(3) Own NPS',d.sec80ccd1b,'NIL'],
+    ['Section 123/80C',d.total80c,0],
+    ['Section 33(8)/24(b) Home Loan',d.sec24b,0],
+    ['ITA 2025 Sec 124(3) Own NPS',d.sec80ccd1b,0],
     ['ITA 2025 Sec 124(1)(b)/124(2) Employer NPS',d.sec80ccd2Old,d.sec80ccd2New],
     ['Total Deductions',d.totalDedOld,d.sec80ccd2New],
     ['TAXABLE INCOME',d.taxIncOld,d.taxIncNew],
@@ -5219,7 +5315,7 @@ function downloadExcel(){
     ['Cess 4%',d.taxOld.cess,d.taxNew.cess],
     ['TOTAL ANNUAL TAX',d.taxOld.total,d.taxNew.total],
     ['Monthly TDS',Math.round(d.taxOld.total/12),Math.round(d.taxNew.total/12)],
-    ['RECOMMENDED',d.betterRegime==='old'?'✅ OLD REGIME':'','d.betterRegime==="new"?"✅ NEW REGIME":""'],
+    ['RECOMMENDED',d.betterRegime==='old'?'✅ OLD REGIME':'',d.betterRegime==='new'?'✅ NEW REGIME':''],
   ];
   const refs=[
     ['LEGAL REFERENCES — Finance Act 2025, FY 2026-27'],
@@ -5242,6 +5338,31 @@ function downloadExcel(){
   const ws1=XLSX.utils.aoa_to_sheet(slip);
   const ws2=XLSX.utils.aoa_to_sheet(tax);
   const ws3=XLSX.utils.aoa_to_sheet(refs);
+
+  // Make salary sheet monthly column formula-driven from annual values
+  for(let r=6;r<=180;r++){
+    const annual=ws1['D'+r];
+    if(annual && annual.t==='n') ws1['E'+r]={t:'n',f:`ROUND(D${r}/12,0)`,v:Math.round((annual.v||0)/12)};
+  }
+
+  // Tax sheet formulas (rows fixed by table layout)
+  ws2['B9']={t:'n',f:'B2-SUM(B3:B8)',v:Math.round(d.grossTaxOld||0)};
+  ws2['C9']={t:'n',f:'C2-SUM(C3:C8)',v:Math.round(d.grossTaxNew||0)};
+  ws2['B12']={t:'n',f:'MAX(0,B9-B10-B11)',v:Math.round(d.netOld||0)};
+  ws2['C12']={t:'n',f:'MAX(0,C9-C10-C11)',v:Math.round(d.netNew||0)};
+  ws2['B16']={t:'n',f:'SUM(B13:B15)',v:Math.round(d.totalDedOld||0)};
+  ws2['C16']={t:'n',f:'SUM(C13:C15)',v:Math.round(d.sec80ccd2New||0)};
+  ws2['B17']={t:'n',f:'MAX(0,B12-B16)',v:Math.round(d.taxIncOld||0)};
+  ws2['C17']={t:'n',f:'MAX(0,C12-C16)',v:Math.round(d.taxIncNew||0)};
+  ws2['B21']={t:'n',f:'ROUND(MAX(0,B18-B19+B20)*0.04,0)',v:Math.round(d.taxOld.cess||0)};
+  ws2['C21']={t:'n',f:'ROUND(MAX(0,C18-C19+C20)*0.04,0)',v:Math.round(d.taxNew.cess||0)};
+  ws2['B22']={t:'n',f:'MAX(0,B18-B19+B20+B21)',v:Math.round(d.taxOld.total||0)};
+  ws2['C22']={t:'n',f:'MAX(0,C18-C19+C20+C21)',v:Math.round(d.taxNew.total||0)};
+  ws2['B23']={t:'n',f:'ROUND(B22/12,0)',v:Math.round((d.taxOld.total||0)/12)};
+  ws2['C23']={t:'n',f:'ROUND(C22/12,0)',v:Math.round((d.taxNew.total||0)/12)};
+  ws2['B24']={t:'s',f:'IF(B22<=C22,"✅ OLD REGIME","")',v:d.betterRegime==='old'?'✅ OLD REGIME':''};
+  ws2['C24']={t:'s',f:'IF(C22<B22,"✅ NEW REGIME","")',v:d.betterRegime==='new'?'✅ NEW REGIME':''};
+
   ws1['!cols']=[{wch:28},{wch:26},{wch:18},{wch:14},{wch:13}];
   ws2['!cols']=[{wch:36},{wch:18},{wch:26}];
   ws3['!cols']=[{wch:22},{wch:60}];
@@ -5915,7 +6036,7 @@ function _buildVerifyExcel(){
     sc(ws1, addr(0,r), row[0]);          // A: name
     nc(ws1, addr(1,r), row[2]);          // B: annual value (anchor)
     // C: % of CTC formula
-    fc(ws1, addr(2,r), `=IF(B9>0,ROUND(${addr(1,r)}/B9*100,1)&"%","—")`, ctc>0?(row[2]/ctc*100):0);
+    fc(ws1, addr(2,r), `=IF(B9>0,${addr(1,r)}/B9,0)`, ctc>0?(row[2]/ctc):0);
     sc(ws1, addr(3,r), isOn?'ON':'OFF'); // D: status
     sc(ws1, addr(4,r), row[3]);          // E: old regime
     sc(ws1, addr(5,r), row[4]);          // F: new regime
@@ -5925,7 +6046,7 @@ function _buildVerifyExcel(){
   const S1_TOTAL_ROW = S1_COMP_START + compRows.length; // row 35
   sc(ws1, addr(0,S1_TOTAL_ROW), 'TOTAL (must = CTC)');
   fc(ws1, addr(1,S1_TOTAL_ROW), `=SUM(B${S1_COMP_START}:B${S1_TOTAL_ROW-1})`, comps.filter(c=>c.on).reduce((s,c)=>s+(c.val||0),0));
-  fc(ws1, addr(2,S1_TOTAL_ROW), `=IF(ABS(B${S1_TOTAL_ROW}-B9)<1,"✓ MATCHES CTC","⚠ MISMATCH: "&(B${S1_TOTAL_ROW}-B9))`, 0);
+  fc(ws1, addr(2,S1_TOTAL_ROW), `=B${S1_TOTAL_ROW}-B9`, comps.filter(c=>c.on).reduce((s,c)=>s+(c.val||0),0)-ctc);
 
   ws1['!ref'] = `A1:G${S1_TOTAL_ROW+5}`;
   ws1['!cols'] = [{wch:26},{wch:18},{wch:16},{wch:8},{wch:38},{wch:38},{wch:32}];
@@ -7026,8 +7147,8 @@ function renderCompare(){
 // ══════════════════════════════════════════════════════════
 function buildShareState(){
   const ctc=document.getElementById('ctc').value;
-  return btoa(unescape(encodeURIComponent(JSON.stringify({
-    v:13,
+  const payload={
+    v:14,
     ctc, emp:document.getElementById('empName')?.value||'',
     city:document.getElementById('cityType').value,
     rent:state.rented?1:0, rentA:document.getElementById('rentAmt').value,
@@ -7037,7 +7158,21 @@ function buildShareState(){
     npsE:document.getElementById('npsEe').value,
     pT:document.getElementById('profTax').value,
     comps:comps.map(c=>({id:c.id,on:c.on?1:0,val:Math.round(c.val||0)})),
-  }))));
+  };
+  const json=JSON.stringify(payload);
+  if(window.LZString?.compressToEncodedURIComponent){
+    return 'lz:'+LZString.compressToEncodedURIComponent(json);
+  }
+  return btoa(unescape(encodeURIComponent(json)));
+}
+
+function decodeShareState(raw){
+  if(!raw) return null;
+  if(raw.startsWith('lz:') && window.LZString?.decompressFromEncodedURIComponent){
+    const txt=LZString.decompressFromEncodedURIComponent(raw.slice(3));
+    return txt?JSON.parse(txt):null;
+  }
+  return JSON.parse(decodeURIComponent(escape(atob(raw))));
 }
 
 function getShareUrl(){
@@ -7047,65 +7182,54 @@ function getShareUrl(){
 // ══════════════════════════════════════════════════════════
 // V13 — SHARE MODAL
 // ══════════════════════════════════════════════════════════
-function switchShareTab(idx, btn){
-  document.querySelectorAll('.shr-tab').forEach(t=>{t.classList.remove('active');t.style.color='var(--ink2)';t.style.borderBottomColor='transparent';t.style.background='none';});
-  document.querySelectorAll('.shr-panel').forEach(p=>{p.style.display='none';p.classList.remove('active');});
-  btn.classList.add('active');
-  const panel=document.getElementById('shrP'+idx);
-  if(panel){panel.style.display='block';panel.classList.add('active');}
-}
+let _shareInlineOpen=false;
 
-function showShareModal(){
-  const m=document.getElementById('shareModal');
-  if(!m) return;
-  m.style.display='block';
-  document.body.style.overflow='hidden';
-  // Check if running from local file
-  const warn=document.getElementById('shareUrlWarning');
-  if(warn){ warn.style.display=(window.location.protocol==='file:')?'block':'none'; }
-  // Populate link preview
+function renderShareInline(){
   const url=getShareUrl();
+  const warn=document.getElementById('shareUrlWarning');
   const lp=document.getElementById('shareLinkPreview');
-  if(lp) lp.textContent=url.length>120?url.substring(0,120)+'…':url;
-  // Generate QR
-  const qrDiv=document.getElementById('qrContainer');
-  if(qrDiv){
-    qrDiv.innerHTML='';
-    try{
-      new QRCode(qrDiv,{
-        text:url,
-        width:200,height:200,
-        colorDark:'#1e1b4b',
-        colorLight:'#ffffff',
-        correctLevel:QRCode.CorrectLevel.M
-      });
-      // QRCode.js creates a table AND a canvas — hide the table, keep canvas
-      setTimeout(()=>{
-        const tbl=qrDiv.querySelector('table'); if(tbl) tbl.style.display='none';
-        const img=qrDiv.querySelector('img'); if(img){ img.style.borderRadius='10px'; img.style.border='3px solid #e0e7ff'; }
-        const cv=qrDiv.querySelector('canvas'); if(cv){ cv.style.borderRadius='10px'; cv.style.border='3px solid #e0e7ff'; }
-      },100);
-    }catch(e){
-      qrDiv.innerHTML='<div style="padding:20px;text-align:center;font-size:12px;color:var(--ink3)">QR unavailable — copy the link instead</div>';
-    }
-  }
-  // Populate WhatsApp preview
-  const wa=buildWhatsAppText();
   const wp=document.getElementById('waPreview');
-  if(wp) wp.textContent=wa;
-  // Reset to first tab
-  switchShareTab(0, document.querySelector('.shr-tab'));
+  if(warn) warn.style.display=(window.location.protocol==='file:')?'block':'none';
+  if(lp) lp.textContent=url;
+  if(wp) wp.textContent=buildWhatsAppText();
 }
 
-function closeShareModal(){
-  const m=document.getElementById('shareModal');
-  if(m) m.style.display='none';
-  document.body.style.overflow='';
+function toggleShareInline(forceOpen=false){
+  const box=document.getElementById('shareInlineBox');
+  if(!box) return;
+  _shareInlineOpen = forceOpen ? true : !box.classList.contains('open');
+  box.classList.toggle('open', _shareInlineOpen);
+  if(_shareInlineOpen){
+    renderShareInline();
+    setTimeout(()=>document.getElementById('copyLinkBtn')?.focus(),0);
+    box.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+}
+
+function copyTextWithFallback(text){
+  if(navigator.clipboard?.writeText){
+    return navigator.clipboard.writeText(text).catch(()=>{
+      const ta=document.createElement('textarea');
+      ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; ta.style.pointerEvents='none';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const ok=document.execCommand('copy');
+      ta.remove();
+      if(!ok) throw new Error('copy-failed');
+    });
+  }
+  return new Promise((resolve,reject)=>{
+    const ta=document.createElement('textarea');
+    ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; ta.style.pointerEvents='none';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    const ok=document.execCommand('copy');
+    ta.remove();
+    ok?resolve():reject(new Error('copy-failed'));
+  });
 }
 
 function copyShareLink(){
   const url=getShareUrl();
-  navigator.clipboard.writeText(url).then(()=>showToast('🔗 Link copied — share it via WhatsApp, email or browser')).catch(()=>{ prompt('Copy this link:',url); });
+  copyTextWithFallback(url).then(()=>showToast('🔗 Link copied — share it via WhatsApp, email or browser')).catch(()=>{ prompt('Copy this link:',url); });
 }
 
 function buildWhatsAppText(){
@@ -7130,14 +7254,17 @@ function buildWhatsAppText(){
 
 function doWhatsApp(){
   const text=buildWhatsAppText();
-  const isMobile=/Mobi|Android/i.test(navigator.userAgent);
-  if(isMobile){ window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank'); }
-  else{ copyWaText(); }
+  const waUrl='https://wa.me/?text='+encodeURIComponent(text);
+  const w=window.open(waUrl,'_blank','noopener,noreferrer');
+  if(!w){
+    copyWaText();
+    showToast('📲 Pop-up blocked. Text copied — paste into WhatsApp');
+  }
 }
 
 function copyWaText(){
   const text=buildWhatsAppText().replace(/\*/g,'').replace(/_/g,'');
-  navigator.clipboard.writeText(text).then(()=>showToast('📋 Summary copied — paste into WhatsApp or email')).catch(()=>{ prompt('Copy text:',text); });
+  copyTextWithFallback(text).then(()=>showToast('📋 Summary copied — paste into WhatsApp or email')).catch(()=>{ prompt('Copy text:',text); });
 }
 
 function showToast(msg){
@@ -7175,8 +7302,8 @@ function loadStateFromHash(){
     if(!hash.includes('#state=')) return;
     const raw=hash.split('#state=')[1];
     if(!raw) return;
-    const s=JSON.parse(decodeURIComponent(escape(atob(raw))));
-    if(s.v!==12&&s.v!==13) return;
+    const s=decodeShareState(raw);
+    if(!s || (s.v!==12&&s.v!==13&&s.v!==14)) return;
     // Fill inputs
     if(s.ctc)  { const el=document.getElementById('ctc'); if(el){el.value=s.ctc; updateCtcHelper(s.ctc);} }
     if(s.emp)  { const el=document.getElementById('empName'); if(el) el.value=s.emp; }
@@ -7234,6 +7361,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   }
   loadStateFromHash();
+  initBackToTop();
 });
 
 
