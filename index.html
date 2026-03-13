@@ -1538,6 +1538,44 @@ body.has-mobile-bar { padding-bottom: 76px; }
 /* QR code container */
 #qrContainer { display:flex; justify-content:center; padding:16px 0 8px; }
 #qrContainer canvas, #qrContainer img { border-radius:8px; }
+
+/* Share modal layout */
+#shareModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 9999;
+  padding: 16px;
+  align-items: center;
+  justify-content: center;
+}
+#shareModal.show { display: flex; }
+.share-modal-card {
+  background: #fff;
+  border-radius: 20px;
+  width: min(100%, 420px);
+  box-shadow: 0 24px 80px rgba(0,0,0,.25);
+  overflow: hidden;
+  max-height: min(92vh, 700px);
+  display: flex;
+  flex-direction: column;
+  transform-origin: var(--share-origin-x, 50%) var(--share-origin-y, 50%);
+  animation: scaleIn .2s var(--ease);
+}
+.share-modal-content {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 600px) {
+  #shareModal { padding: 10px; align-items: flex-end; }
+  .share-modal-card {
+    width: 100%;
+    max-height: min(90vh, 680px);
+    border-radius: 16px;
+  }
+}
+
 /* Share modal tabs */
 .shr-tab.active { color:#7c3aed !important; border-bottom-color:#7c3aed !important; background:#fff !important; }
 .shr-panel { display:none; }
@@ -3139,14 +3177,14 @@ body.has-mobile-bar { padding-bottom: 76px; }
   </div>
 
   <!-- Share modal -->
-  <div id="shareModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;overflow-y:auto;-webkit-overflow-scrolling:touch;" onclick="if(event.target===this)closeShareModal()">
-    <div style="min-height:100%;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;">
-    <div style="background:#fff;border-radius:20px;max-width:400px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.25);overflow:hidden;max-height:none;position:relative;">
+  <div id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle" onclick="if(event.target===this)closeShareModal()">
+    <div class="share-modal-card" id="shareModalCard">
       <!-- Header -->
       <div style="background:linear-gradient(135deg,#7c3aed,#6d28d9);padding:20px 22px 16px;color:#fff">
-        <div style="font-size:16px;font-weight:800;margin-bottom:4px">📲 Share This Calculation</div>
+        <div id="shareModalTitle" style="font-size:16px;font-weight:800;margin-bottom:4px">📲 Share This Calculation</div>
         <div style="font-size:11px;opacity:.8">Anyone opening the link will see your exact numbers — read-only view</div>
       </div>
+      <div class="share-modal-content">
       <!-- Tab switcher -->
       <div style="display:flex;border-bottom:2px solid var(--bd);background:var(--card2)">
         <button class="shr-tab active" onclick="switchShareTab(0,this)" style="flex:1;padding:10px 8px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--ink2);font-family:inherit;transition:all .15s">🔗 Share Link</button>
@@ -3162,7 +3200,7 @@ body.has-mobile-bar { padding-bottom: 76px; }
           ⚠️ <strong>Local file detected.</strong> This link only works on your device. To share with others, upload <code>PayStructurePro_v13.html</code> to GitHub Pages, Netlify, or any web host — then the link will work for anyone.
         </div>
         <div style="background:var(--card2);border:1.5px solid var(--bd);border-radius:10px;padding:10px 14px;font-size:10.5px;font-family:'JetBrains Mono',monospace;color:var(--ink2);word-break:break-all;margin-bottom:14px;max-height:60px;overflow:hidden" id="shareLinkPreview">—</div>
-        <button onclick="copyShareLink()" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:10px">📋 Copy Link</button>
+        <button id="copyLinkBtn" onclick="copyShareLink()" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:10px">📋 Copy Link</button>
         <div style="font-size:11px;color:var(--ink3);text-align:center">Works on any device · No login needed · Link never expires</div>
       </div>
       <!-- Panel 1: QR -->
@@ -3176,13 +3214,13 @@ body.has-mobile-bar { padding-bottom: 76px; }
         <div style="font-size:12px;color:var(--ink2);margin-bottom:12px;line-height:1.7">A formatted text summary — paste into WhatsApp, email, or Telegram. No link required.</div>
         <div id="waPreview" style="background:var(--card2);border:1.5px solid var(--bd);border-radius:10px;padding:12px 14px;font-size:11.5px;line-height:1.8;color:var(--ink);max-height:200px;overflow-y:auto;white-space:pre-wrap;font-family:inherit;margin-bottom:14px"></div>
         <button onclick="doWhatsApp()" class="btn" style="width:100%;justify-content:center;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;margin-bottom:8px">📲 Open in WhatsApp</button>
-        <button onclick="copyWaText()" class="btn" style="width:100%;justify-content:center;background:var(--card2);color:var(--ink);border:1.5px solid var(--bd)">📋 Copy Text</button>
+        <button id="copyWaBtn" onclick="copyWaText()" class="btn" style="width:100%;justify-content:center;background:var(--card2);color:var(--ink);border:1.5px solid var(--bd)">📋 Copy Text</button>
       </div>
       <!-- Footer -->
       <div style="padding:12px 20px;border-top:1.5px solid var(--bd);text-align:center">
-        <button onclick="closeShareModal()" style="background:none;border:none;font-size:12px;color:var(--ink3);cursor:pointer;font-family:inherit;font-weight:600">✕ Close</button>
+        <button id="shareCloseBtn" onclick="closeShareModal()" style="background:none;border:none;font-size:12px;color:var(--ink3);cursor:pointer;font-family:inherit;font-weight:600">✕ Close</button>
       </div>
-    </div>
+      </div>
     </div>
   </div>
 
@@ -7047,65 +7085,109 @@ function getShareUrl(){
 // ══════════════════════════════════════════════════════════
 // V13 — SHARE MODAL
 // ══════════════════════════════════════════════════════════
+let _shareLastFocus=null;
+
 function switchShareTab(idx, btn){
   document.querySelectorAll('.shr-tab').forEach(t=>{t.classList.remove('active');t.style.color='var(--ink2)';t.style.borderBottomColor='transparent';t.style.background='none';});
   document.querySelectorAll('.shr-panel').forEach(p=>{p.style.display='none';p.classList.remove('active');});
+  if(!btn) return;
   btn.classList.add('active');
   const panel=document.getElementById('shrP'+idx);
   if(panel){panel.style.display='block';panel.classList.add('active');}
 }
 
+function trapShareModalFocus(e){
+  const m=document.getElementById('shareModal');
+  if(!m || !m.classList.contains('show')) return;
+  if(e.key==='Escape'){ e.preventDefault(); closeShareModal(); return; }
+  if(e.key!=='Tab') return;
+  const focusables=[...m.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter(el=>!el.disabled && el.offsetParent!==null);
+  if(!focusables.length) return;
+  const first=focusables[0], last=focusables[focusables.length-1];
+  if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+}
+
+document.addEventListener('keydown', trapShareModalFocus);
+
 function showShareModal(){
   const m=document.getElementById('shareModal');
   if(!m) return;
-  m.style.display='block';
+  _shareLastFocus=document.activeElement;
+  const btn=window.event?.target?.closest?.('button');
+  if(btn){
+    const r=btn.getBoundingClientRect();
+    m.style.setProperty('--share-origin-x',`${Math.round(r.left+r.width/2)}px`);
+    m.style.setProperty('--share-origin-y',`${Math.round(r.top+r.height/2)}px`);
+  }else{
+    m.style.setProperty('--share-origin-x','50%');
+    m.style.setProperty('--share-origin-y','50%');
+  }
+  m.classList.add('show');
   document.body.style.overflow='hidden';
-  // Check if running from local file
   const warn=document.getElementById('shareUrlWarning');
   if(warn){ warn.style.display=(window.location.protocol==='file:')?'block':'none'; }
-  // Populate link preview
   const url=getShareUrl();
   const lp=document.getElementById('shareLinkPreview');
   if(lp) lp.textContent=url.length>120?url.substring(0,120)+'…':url;
-  // Generate QR
   const qrDiv=document.getElementById('qrContainer');
   if(qrDiv){
     qrDiv.innerHTML='';
     try{
-      new QRCode(qrDiv,{
-        text:url,
-        width:200,height:200,
-        colorDark:'#1e1b4b',
-        colorLight:'#ffffff',
-        correctLevel:QRCode.CorrectLevel.M
-      });
-      // QRCode.js creates a table AND a canvas — hide the table, keep canvas
+      const qrSize=Math.max(140,Math.min(220,Math.floor(window.innerWidth*0.52)));
+      new QRCode(qrDiv,{text:url,width:qrSize,height:qrSize,colorDark:'#1e1b4b',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
       setTimeout(()=>{
         const tbl=qrDiv.querySelector('table'); if(tbl) tbl.style.display='none';
-        const img=qrDiv.querySelector('img'); if(img){ img.style.borderRadius='10px'; img.style.border='3px solid #e0e7ff'; }
-        const cv=qrDiv.querySelector('canvas'); if(cv){ cv.style.borderRadius='10px'; cv.style.border='3px solid #e0e7ff'; }
+        const img=qrDiv.querySelector('img');
+        const cv=qrDiv.querySelector('canvas');
+        [img,cv].forEach(el=>{
+          if(!el) return;
+          el.style.display='block'; el.style.maxWidth='100%'; el.style.height='auto';
+          el.style.borderRadius='10px'; el.style.border='3px solid #e0e7ff'; el.style.margin='0 auto';
+        });
       },100);
     }catch(e){
       qrDiv.innerHTML='<div style="padding:20px;text-align:center;font-size:12px;color:var(--ink3)">QR unavailable — copy the link instead</div>';
     }
   }
-  // Populate WhatsApp preview
   const wa=buildWhatsAppText();
   const wp=document.getElementById('waPreview');
   if(wp) wp.textContent=wa;
-  // Reset to first tab
   switchShareTab(0, document.querySelector('.shr-tab'));
+  setTimeout(()=>{ document.getElementById('copyLinkBtn')?.focus(); },0);
 }
 
 function closeShareModal(){
   const m=document.getElementById('shareModal');
-  if(m) m.style.display='none';
+  if(m) m.classList.remove('show');
   document.body.style.overflow='';
+  if(_shareLastFocus && typeof _shareLastFocus.focus==='function'){ _shareLastFocus.focus(); }
+}
+
+function copyTextWithFallback(text){
+  if(navigator.clipboard?.writeText){
+    return navigator.clipboard.writeText(text).catch(()=>{
+      const ta=document.createElement('textarea');
+      ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; ta.style.pointerEvents='none';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const ok=document.execCommand('copy');
+      ta.remove();
+      if(!ok) throw new Error('copy-failed');
+    });
+  }
+  return new Promise((resolve,reject)=>{
+    const ta=document.createElement('textarea');
+    ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; ta.style.pointerEvents='none';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    const ok=document.execCommand('copy');
+    ta.remove();
+    ok?resolve():reject(new Error('copy-failed'));
+  });
 }
 
 function copyShareLink(){
   const url=getShareUrl();
-  navigator.clipboard.writeText(url).then(()=>showToast('🔗 Link copied — share it via WhatsApp, email or browser')).catch(()=>{ prompt('Copy this link:',url); });
+  copyTextWithFallback(url).then(()=>showToast('🔗 Link copied — share it via WhatsApp, email or browser')).catch(()=>{ prompt('Copy this link:',url); });
 }
 
 function buildWhatsAppText(){
@@ -7137,7 +7219,7 @@ function doWhatsApp(){
 
 function copyWaText(){
   const text=buildWhatsAppText().replace(/\*/g,'').replace(/_/g,'');
-  navigator.clipboard.writeText(text).then(()=>showToast('📋 Summary copied — paste into WhatsApp or email')).catch(()=>{ prompt('Copy text:',text); });
+  copyTextWithFallback(text).then(()=>showToast('📋 Summary copied — paste into WhatsApp or email')).catch(()=>{ prompt('Copy text:',text); });
 }
 
 function showToast(msg){
