@@ -1572,7 +1572,7 @@ body.has-mobile-bar #backToTop { bottom: calc(84px + env(safe-area-inset-bottom)
 #previewCard.show { display:block; }
 
 /* QR code container */
-#qrContainer { display:flex; justify-content:center; padding:12px 0 10px; width:100%; overflow:hidden; }
+#qrContainer { display:flex; justify-content:center; padding:10px 0 12px; width:100%; overflow:hidden; }
 #qrContainer table { display:none !important; }
 #qrContainer canvas, #qrContainer img { border-radius:8px; max-width:100%; height:auto; image-rendering:pixelated; }
 
@@ -1583,7 +1583,6 @@ body.has-mobile-bar #backToTop { bottom: calc(84px + env(safe-area-inset-bottom)
   inset: 0;
   background: rgba(0,0,0,.55);
   z-index: 9999;
-  padding: 16px;
   padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
   align-items: center;
   justify-content: center;
@@ -1595,7 +1594,6 @@ body.has-mobile-bar #backToTop { bottom: calc(84px + env(safe-area-inset-bottom)
   width: min(100%, 420px);
   box-shadow: 0 24px 80px rgba(0,0,0,.25);
   overflow: hidden;
-  max-height: min(92vh, 700px);
   max-height: calc(100dvh - 20px);
   display: flex;
   flex-direction: column;
@@ -1607,10 +1605,9 @@ body.has-mobile-bar #backToTop { bottom: calc(84px + env(safe-area-inset-bottom)
   -webkit-overflow-scrolling: touch;
 }
 @media (max-width: 600px) {
-  #shareModal { padding: 10px; align-items: center; }
+  #shareModal { align-items: center; }
   .share-modal-card {
     width: 100%;
-    max-height: min(90vh, 680px);
     max-height: calc(100dvh - 20px);
     border-radius: 16px;
   }
